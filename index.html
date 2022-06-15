@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Treasure Hunter Monolinth Solver</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="structs.js"></script>
+        <script src="solver.js"></script>
+        <script src="index.js"></script>
+    </head>
+    <body>
+        <div id="content">
+            <div id="ui">
+                <h1>Treaure Hunter Monolinth Solver</h1>
+                <div id="input_row">
+                    <div id="edit_mode_opts" class="f">
+                        <button class="mode_btn" id="solve_mode_btn">Solve</button>
+                        <button class="mode_btn" id="clear_mode_btn">Clear</button>
+                        <button class="mode_btn" id="rand_mode_btn">Randomize</button>
+                        <div class="f range_inp" id="percentage_goal">
+                            <p>(90% solved)</p>
+                            <input type="range" min="70" max="100" step="1" id="percent_goal_inp" value="90">
+                        </div>
+                        <div class="f range_inp" id="percentage_goal">
+                            <p>(5000 searches)</p>
+                            <input type="range" min="1000" max="10000" step="1000" id="searches_inp" value="5000">
+                        </div>
+                    </div>
+                    <div id="solve_mode_opts" style="display: none;" class="f">
+                        <button class="mode_btn" id="edit_mode_btn">Edit</button>
+                    </div>
+                </div>
+            </div>
+            <div id="input"></div>
+            <div id="solution" style="display: none;"></div>
+        </div>
+    </body>
+</html>
