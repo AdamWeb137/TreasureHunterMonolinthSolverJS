@@ -13,10 +13,12 @@ class Board {
 
     static width = 1;
     static height = 1;
+    static area = 1;
 
     static set_dimensions(w,h){
         Board.width = w;
         Board.height = h;
+        Board.area = w*h;
     }
 
     static get_empty(filler=0,rand_max=null){
@@ -313,6 +315,7 @@ function get_solved_board(starting_board, percent_goal, max_searches=5000){
     };
 
     while(stack.length > 0 && max_searches > current_searches){
+        // console.log(current_searches);
         let bi = get_best_index();
         let nb_board = stack.splice(bi,1)[0];
         if(nb_board.objective_cost() > cb_board.objective_cost()) cb_board = nb_board;

@@ -1,5 +1,4 @@
 Board.set_dimensions(22,11);
-// Board.set_dimensions(5,5);
 
 const color_translation = {
     0:"var(--bc)",
@@ -9,7 +8,48 @@ const color_translation = {
     4:"var(--pink)"//pink
 };
 
+let solution_board_list = null;
+let current_solution_i = -1;
+
+const EVENT = new_struct(["event","any"],["el","any"],["func","any"]);
+let event_listeners = [];
+function clear_event_listeners(){
+    for(let e of event_listeners){
+        e.el.removeEventListener(e.event, e.func);
+    }
+    event_listeners = [];
+}
+
+function add_event_listener(el, event, func){
+    event_listeners.push(EVENT(event,el,func));
+    el.addEventListener(event,func);
+}
+
 function set_solution_display(board_list, i){
+
+    clear_event_listeners();
+
+    solution_board_list = board_list;
+    current_solution_i = i;
+
+    let lb = board_list[board_list.length-1];
+    document.querySelector("#clear_info").innerHTML = `${(lb.cleared_area/Board.area*100).toFixed(2)}% Clear`;
+    document.querySelector("#step_info").innerHTML = `${lb.depth} steps`;
+
+    // document.addEventListener("keydown",e=>{
+    //     if(!input_hidden)return;
+    //     if(e.key == "0" || e.key == "Enter") set_solution_display(board_list,0);
+    //     if(e.key == "ArrowLeft") set_solution_display(board_list, Math.max(0,i-1));
+    //     if(e.key == "ArrowRight") set_solution_display(board_list, Math.min(i+1,board_list.length-1));
+    // });
+
+    add_event_listener(document,"keydown",e=>{
+        if(!input_hidden)return;
+        if(e.key == "0" || e.key == "Enter") set_solution_display(board_list,0);
+        if(e.key == "ArrowLeft") set_solution_display(board_list, Math.max(0,i-1));
+        if(e.key == "ArrowRight") set_solution_display(board_list, Math.min(i+1,board_list.length-1));
+    });
+
     let board_div = document.querySelector("#solution");
     board_div.innerHTML = "";
     for(let y = 0; y < Board.height; y++){
@@ -34,10 +74,12 @@ function set_solution_display(board_list, i){
                         box.style.backgroundColor = "red";
                         add_small_box = false;
                     }
-
-                    box.addEventListener("mouseup",e=>{
+                    // box.addEventListener("mouseup",e=>{
+                    //     set_solution_display(board_list,j);
+                    // });
+                    add_event_listener(box,"mouseup",e=>{
                         set_solution_display(board_list,j);
-                    });
+                    })
                     break;
                 }
             }
@@ -61,12 +103,40 @@ function get_child_num(el){
 }
 
 function set_input_display(){
+
+    clear_event_listeners();
+
     const board_div = document.querySelector("#input");
+    board_div.innerHTML = "";
     let focused = null;
 
-    document.addEventListener("mouseup",e=>{
-        let box = e.target;
+    // document.addEventListener("mouseup",e=>{
+    //     if(input_hidden)return;
+    //     let box = e.target;
+    //     if(box.classList.contains("easy_input_btn") && focused != null){
+    //         let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
+    //         let ci = Number(box.getAttribute("data-c") ?? "0");
+    //         focused.style.backgroundColor = color_translation[ci];
+    //         set_block(input_board,xy,ci);
+    //         set_new_focused(XY(xy.x+1,xy.y),true);
+    //         return;
+    //     }
+    //     for(let b of document.querySelectorAll(".bigbox")){
+    //         b.classList.remove("bigbox");
+    //         b.classList.add("smallbox");
+    //     }
+    //     if(!box.classList.contains("ibox")){
+    //         focused = null;
+    //         return;
+    //     };
+    //     focused = box;
+    //     box.classList.add("bigbox");
+    //     box.classList.remove("smallbox");
+    // });
 
+    add_event_listener(document,"mouseup",e=>{
+        if(input_hidden)return;
+        let box = e.target;
         if(box.classList.contains("easy_input_btn") && focused != null){
             let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
             let ci = Number(box.getAttribute("data-c") ?? "0");
@@ -155,11 +225,19 @@ function set_input_display(){
 
     };
 
-    document.addEventListener("keydown",e=>{
+    // document.addEventListener("keydown",e=>{
+    //     if(input_hidden)return;
+    //     handle_manual_move(e);
+    //     handle_auto_move(e);
+    // });
+
+    add_event_listener(document,"keydown",e=>{
+        console.log("input keydown");
         if(input_hidden)return;
         handle_manual_move(e);
         handle_auto_move(e);
     });
+
     for(let y = 0; y < Board.height; y++){
         let new_row = document.createElement("DIV");
         new_row.classList.add("row");
@@ -212,6 +290,12 @@ function solve_mode(){
 
     let input_board_class = new Board(Board.clone_board(input_board), null, 0, null, 0);
 
+    const sol_div = document.querySelector("#solution");
+    sol_div.innerHTML = "";
+    //sorry coding gods for writing this nasty code
+    while(sol_div.childElementCount != 0){
+        let i = 0;
+    }
     alert("This will take a minute. Please be patient");
     input_board_class.cleared_area = input_board_class.count_zeros();
     let board_list = solve_board(input_board_class,get_pg(),get_s());
@@ -225,17 +309,19 @@ function edit_mode(){
     document.querySelector("#solution").style.display = "none";
     document.querySelector("#edit_mode_opts").style.display = "flex";
     document.querySelector("#solve_mode_opts").style.display = "none";
+    if(solution_board_list == null) return;
+    input_board = Board.clone_board(solution_board_list[current_solution_i].board);
+    solution_board_list = null;
+    set_input_display();
 }
 
 function clear(e){
     input_board = Board.get_empty(0);
-    document.querySelector("#input").innerHTML = "";
     set_input_display();
 }
 
 function randomize(e){
     input_board = Board.get_empty(1,4);
-    document.querySelector("#input").innerHTML = "";
     set_input_display();
 }
 
