@@ -41,13 +41,13 @@ At this point you can click "Edit" to edit the board. The board editted will be 
 
 ## Input Mode
 
-Left Click (on block) - Select block
-Left Click (on colored tile below board) - Change selected block to selected color
-Arrow Keys - Select block to the left,right,top,bottom of the current selected block
+- Left Click (on block): Select block
+- Left Click (on colored tile below board): Change selected block to selected color
+- Arrow Keys: Select block to the left,right,top,bottom of the current selected block
 
 ## Solve Mode
 
-Left Click (on numbered block) - Go to nth step
-Left Arrow - Go to previous step
-Right Arrow - Go to next step
-0 / Enter - Go to 0th step
+- Left Click (on numbered block): Go to nth step
+- Left Arrow: Go to previous step
+- Right Arrow: Go to next step
+- 0 / Enter: Go to 0th step
