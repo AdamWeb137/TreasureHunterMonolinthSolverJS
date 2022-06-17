@@ -86,6 +86,7 @@ h1{
 
 #edit_mode_opts{
     width: 100%;
+    flex-wrap: wrap;
 }
 
 #solve_mode_opts {
@@ -112,7 +113,7 @@ h1{
 }
 
 
-#score_goal {
+.range_inp {
     flex-grow: 1;
 }
 
@@ -123,12 +124,12 @@ h1{
     margin:5px;
 }
 
-#score_goal > * {
+.range_inp > * {
     margin:0px 3px;
     flex-shrink: 0;
 }
 
-#score_goal > input {
+.range_inp > input {
     flex-grow: 1;
     width: auto;
 }
@@ -161,4 +162,9 @@ h1{
     padding: 10px 0px;
     font-size: 2rem;
     user-select: none;
+}
+
+.fc {
+    display: flex;
+    justify-content: center;
 }

@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="style.css">
         <script src="structs.js"></script>
         <script src="solver.js"></script>
+        <script src="handle_screenshot.js"></script>
         <script src="index.js"></script>
     </head>
     <body>
@@ -22,9 +23,12 @@
                             <p>(4900 score)</p>
                             <input type="range" min="0" max="4900" step="100" id="score_goal_inp" value="4900">
                         </div>
-                        <div class="f range_inp" id="score_goal">
+                        <div class="f range_inp">
                             <p>(5000 searches)</p>
                             <input type="range" min="1000" max="10000" step="1000" id="searches_inp" value="5000">
+                        </div>
+                        <div class="f range_inp">
+                            <input type="file" id="screenshot_inp" accept="image/*">
                         </div>
                     </div>
                     <div id="solve_mode_opts" style="display: none;" class="f">
@@ -35,8 +39,8 @@
                     </div>
                 </div>
             </div>
-            <div id="input"></div>
-            <div id="solution" style="display: none;"></div>
+            <div class="fc"><div id="input"></div></div>
+            <div class="fc"></div><div id="solution" style="display: none;"></div></div>
         </div>
     </body>
 </html>

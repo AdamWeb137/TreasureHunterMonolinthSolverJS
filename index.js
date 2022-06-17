@@ -355,8 +355,7 @@ window.addEventListener("load",e=>{
     document.querySelector("#edit_mode_btn").addEventListener("mouseup",e=>{edit_mode();});
     document.querySelector("#clear_mode_btn").addEventListener("mouseup",clear);
     document.querySelector("#rand_mode_btn").addEventListener("mouseup",randomize);
-
-
+    handle_screenshot();
     set_input_display();
 });
 

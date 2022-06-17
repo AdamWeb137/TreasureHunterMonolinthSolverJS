@@ -15,13 +15,21 @@ You must first duplicate a board from the "Treasure Hunter Monolinth" Minigame i
 
 Click on any square to select it. You can then click the corresponding color on the bottom. You can also press 0-4 on your keyboard. The next square will automatically be selected. You can also use the arrow keys to move and select squares.
 
+You can also mark a block as being part of a fish fossil or monocub. Click on the correspoding button or press "M" for monocub, "F" for fish, or "N" for nothing.
+
+### Set Board from Screenshot
+
+You can set the board from a screenshot. The screenshot must be cropped to only the blocks. Do not take a screenshot of the whole window. Upload the image from the "Browse" button on the top of the screen. Once uploaded, the board will automatically be changed.
+
+This feature doesn't mark items as monocubs or fishes, so be careful. I recomend only using it for the starting board, then editing everything else manually.
+
 ## Solve Mode
 
 ### Configuring
 
-On the top of the page there are two sliders: one for percentage goal, and one for max searches. 
+On the top of the page there are two sliders: one for score goal, and one for max searches. 
 
-The percentage goal is how much of the board needs to be cleared before it is considered a solution. I wouldn't recommend dropping this below 90%. The algorithm may not reach this goal, and if that's the case, it will output the best possible solution.
+The score goal is the score necesary for a board to be considered a solution. I wouldn't recommend changing this because it is already set at the minimum for S rank. The algorithm may not reach this goal, and if that's the case, it will output the best possible solution.
 
 The max searches tells the program how many boards to search. Again, I wouldn't recomend dropping this below 5000. More searches = more time waiting but a possibly better solution
 
@@ -44,6 +52,8 @@ At this point you can click "Edit" to edit the board. The board editted will be 
 - Left Click (on block): Select block
 - Left Click (on colored tile below board): Change selected block to selected color
 - Arrow Keys: Select block to the left,right,top,bottom of the current selected block
+- 0-4: Set block to corresponding color
+- N,F,M: Set block to Nothing, Monocub, or Fish
 
 ## Solve Mode
 
