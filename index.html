@@ -18,17 +18,18 @@
                         <button class="mode_btn" id="solve_mode_btn">Solve</button>
                         <button class="mode_btn" id="clear_mode_btn">Clear</button>
                         <button class="mode_btn" id="rand_mode_btn">Randomize</button>
-                        <div class="f range_inp" id="percentage_goal">
-                            <p>(90% solved)</p>
-                            <input type="range" min="70" max="100" step="1" id="percent_goal_inp" value="90">
+                        <div class="f range_inp" id="score_goal">
+                            <p>(4900 score)</p>
+                            <input type="range" min="0" max="4900" step="100" id="score_goal_inp" value="4900">
                         </div>
-                        <div class="f range_inp" id="percentage_goal">
+                        <div class="f range_inp" id="score_goal">
                             <p>(5000 searches)</p>
                             <input type="range" min="1000" max="10000" step="1000" id="searches_inp" value="5000">
                         </div>
                     </div>
                     <div id="solve_mode_opts" style="display: none;" class="f">
                         <button class="mode_btn" id="edit_mode_btn">Edit</button>
+                        <p class="solve_info" id="score_info">x Score</p>
                         <p class="solve_info" id="clear_info">x% Clear</p>
                         <p class="solve_info" id="step_info">x Steps</p>
                     </div>

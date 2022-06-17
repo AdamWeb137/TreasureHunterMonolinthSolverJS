@@ -1,5 +1,6 @@
 const XY = new_struct(["x","number"],["y","number"]);
 const ALLDIRECTIONS = new_struct(["up","any"],["down","any"],["left","any"],["right","any"]);
+const PRIZE = new_struct(["type","any"],["coors","any"]);
 
 function get_block(arr, xy){
     return arr[xy.y][xy.x];
@@ -71,12 +72,18 @@ class Board {
     }
 
     static get_all_directions(xy){
-        return ALLDIRECTIONS(
-            XY(xy.x, xy.y - 1),
-            XY(xy.x, xy.y + 1),
-            XY(xy.x - 1, xy.y),
-            XY(xy.x + 1, xy.y),
-        );
+        let x = xy.x;
+        let y = xy.y;
+        let left = XY(x-1,y);
+        let right = XY(x+1,y);
+        let up = XY(x,y-1);
+        let down = XY(x,y+1);
+        let dirs = [];
+        if(Board.in_bounds(left))dirs.push(left);
+        if(Board.in_bounds(right))dirs.push(right);
+        if(Board.in_bounds(up))dirs.push(up);
+        if(Board.in_bounds(down))dirs.push(down);
+        return dirs;
     }
 
     static clone_board(board){
@@ -99,15 +106,94 @@ class Board {
         }
         return board;
     }
+    
+    static clone_prizes(prizes){
+    	let nps = [];
+    	for(let i = 0; i < prizes.length; i++){
+    		let np = PRIZE(prizes[i].type,[]);
+    		for(let j = 0; j < prizes[i].coors.length; j++){
+    			np.coors.push(prizes[i].coors[j]);
+    		}
+    		nps.push(np);
+    	}
+    	return nps;
+    }
+    
+    static create_prizes_from_board(b){
+    	let empty = Board.get_empty();
+    	let prizes = [];
+    	let prizes_set = {};
+        let stack = [0];
+        set_block(empty, XY(0,0), -1);
+        const search = (coor, start_block,index) => {
+            if(get_block(empty, coor) != -1) return;
+            set_block(empty, coor, 2);
+            let block_type = get_block(b,coor);
+            let dirs = Board.get_all_directions(coor);
+            for(let d of dirs){
+                if(get_block(b,d) == block_type){
+                    if(get_block(empty, d) >= 1) continue;
+                    if(get_block(b,d) == 0){
+                        set_block(empty,d,-1);
+                        search(d,true, null);
+                        continue;
+                    }
+                    if(start_block){
+                        set_block(empty, coor, 1);
+                        let ind = Board.coor_to_index(coor);
+                        prizes_set[ind] = PRIZE(block_type,[ind]);
+                        index = ind;
+                    }
+                    set_block(empty,d,-1);
+                    prizes_set[index].coors.push(Board.coor_to_index(d));
+                    search(d, false,index);
+                
+                }else if(get_block(empty, d) == 0){
+                    stack.push(Board.coor_to_index(d));
+                    set_block(empty, d, -1);
+                }
+            }
 
-    constructor(board, parent, cleared, excavation, depth){
+        };
+        while(stack.length > 0){
+            let next = stack.shift();
+            let coor = Board.index_to_coor(next);
+            if(get_block(empty,coor) == -1)search(coor, true, null);
+        }
+        for(let ind in prizes_set){
+        	prizes.push(prizes_set[ind]);
+        }
+        return prizes;
+    }
+
+    static get_board_from_arrays(input, type){
+        let cl = Board.count_zeros(input);
+        let nb = new Board(input, null, cl, null, 0, cl*5, null, type);
+        return nb;
+    }
+
+    static count_zeros(b){
+        let z = 0;
+        for(let y = 0; y < Board.height; y++){
+            for(let x = 0; x < Board.width; x++){
+                if(b[y][x] == 0) z++;
+            }
+        }
+        return z;
+    }
+
+    constructor(board, parent, cleared, excavation, depth, score, prizes, prize_board){
         this.board = board;
         this.parent = parent;
         this.cleared_area = cleared;
         this.excavation_coor = excavation;
-        this.clickable_island_area = 0;
         this.depth = depth;
+		this.score = score;
+		this.prizes = prizes;
+		this.prize_board = prize_board;
+		if(this.prizes == null) this.prizes = Board.create_prizes_from_board(this.prize_board);
         this.get_clickable();
+        this.free_prizes();
     }
 
     get_block(xy){
@@ -146,9 +232,7 @@ class Board {
             let block_type = this.get_block(coor);
             let dirs = Board.get_all_directions(coor);
 
-            for(let dir in dirs){
-                let d = dirs[dir];
-                if(!Board.in_bounds(d)) continue;
+            for(let d of dirs){
                 if(this.get_block(d) == block_type){
                     if(get_block(empty, d) >= 1) continue;
                     if(this.get_block(d) == 0){
@@ -178,17 +262,18 @@ class Board {
             if(get_block(empty,coor) == -1)search(coor, true);
         }
 
+		let i = 0;
+		while(i < clickable_coors.length){
+			let c = clickable_coors[i];
+			if(this.is_island(c)){
+				clickable_coors.splice(i,1);
+				continue;
+            }
+			i++;
+		}
+
         this.clickable_area = clickable_area;
         this.clickable_coors = clickable_coors;
-        this.clickable_nonisland_coors = [];
-        this.clickable_island_coors = [];
-
-
-        for(let c of clickable_coors){
-            let ii = this.is_island(c);
-            if(!ii)this.clickable_nonisland_coors.push(c);
-            if(ii)this.clickable_island_coors.push(c);
-        }
     }
 
     inside_index(){
@@ -202,52 +287,73 @@ class Board {
     }
 
     objective_cost(){
-        return this.cleared_area + this.clickable_island_area;
+        return this.score;
     }
 
     tie_breaker_cost(){
         return this.depth;
     }
 
-    g_cost(){
-        return this.clickable_area - this.clickable_island_area;
-    }
-
-    h_cost(){
-        return this.cleared_area + this.clickable_area;
-    }
-
     f_cost(){
-        return this.cleared_area+this.clickable_area+this.depth;
+        return this.score+this.clickable_area*5+this.depth;
     }
 
     is_island(coor){
         let block_type = this.get_block(coor);
-        let been_to = new Set();
+        let been_to = Board.get_empty(0);
         let continue_search = true;
         let area = 0;
         const search = (c)=>{
             let i = Board.coor_to_index(c);
             if(!continue_search)return;
             if(!Board.in_bounds(c))return;
-            if(been_to.has(i))return;
-            been_to.add(i);
+            if(get_block(been_to,c) == 1)return;
             if(this.get_block(c) == 0)return;
             if(this.get_block(c) != block_type){
                 area = 0;
                 continue_search = false;
                 return;
             }
+            set_block(been_to,c,1);
             area++;
             let dirs = Board.get_all_directions(c);
-            for(let dir in dirs){
-                let d = dirs[dir];
+            for(let d of dirs){
                 search(d);
             }
         };
         search(coor);
-        if(continue_search)this.clickable_island_area += area;
+        if(continue_search){
+        	this.cleared_area += area;
+        	this.score += area*5;
+        	this.clickable_area -= area;
+        	for(let y = 0; y < Board.height; y++){
+	        	for(let x = 0; x < Board.width; x++){
+					if(been_to[y][x] == 1) this.set_block(XY(x,y),0);
+				}
+			}			
+        }
         return (continue_search);
+    }
+    
+    free_prizes(){
+    	let i = 0;
+    	while(i < this.prizes.length){
+    		let p = this.prizes[i];
+    		let is_freed = true;
+    		for(let ind of p.coors){
+    			let c = Board.index_to_coor(ind);
+    			if(this.get_block(c) != 0){
+    				is_freed = false;
+    				break;
+    			}
+    		}
+    		if(is_freed){
+    			this.score += p.type*500;
+    			this.prizes.splice(i,1);
+    			continue;
+    		}
+    		i++;
+    	}
     }
 
     get_new_board_from_excavated_coor(c){
@@ -259,9 +365,7 @@ class Board {
         const search = (coor)=>{
             if(get_block(nb,coor) != -1) return;
             let dirs = Board.get_all_directions(coor);
-            for(let dir in dirs){
-                let d = dirs[dir];
-                if(!Board.in_bounds(d)) continue;
+            for(let d of dirs){
                 if(get_block(nb, d) == block_type && !(changed_set.has(Board.coor_to_index(d)))){
                     set_block(nb,d,-1);
                     additional_cleared_area++;
@@ -278,24 +382,16 @@ class Board {
         };
         search(c);
         nb = Board.replace_a_with_b(nb,-1,0);
-        return new Board(nb, this, this.cleared_area+additional_cleared_area, c, this.depth+1);
+        return new Board(nb, this, this.cleared_area+additional_cleared_area, c, this.depth+1, this.score+additional_cleared_area*5, Board.clone_prizes(this.prizes),this.prize_board);
     }
 
     count_zeros(){
-        let z = 0;
-        for(let y = 0; y < Board.height; y++){
-            for(let x = 0; x < Board.width; x++){
-                if(this.board[y][x] == 0) z++;
-            }
-        }
-        return z;
+        return Board.count_zeros(this.board);
     }
 
 }
 
-function get_solved_board(starting_board, percent_goal, max_searches=5000){
-
-    let blocks_needed_for_goal = Math.ceil((percent_goal/100)*Board.width*Board.height);
+function get_solved_board(starting_board, score_goal, max_searches=5000){
     let cb_board = starting_board;
     let stack = [starting_board];
     let current_searches = 0;
@@ -315,15 +411,15 @@ function get_solved_board(starting_board, percent_goal, max_searches=5000){
     };
 
     while(stack.length > 0 && max_searches > current_searches){
-        // console.log(current_searches);
+        console.log(current_searches);
         let bi = get_best_index();
         let nb_board = stack.splice(bi,1)[0];
         if(nb_board.objective_cost() > cb_board.objective_cost()) cb_board = nb_board;
-        if(nb_board.objective_cost() >= blocks_needed_for_goal){
+        if(nb_board.score >= score_goal){
             console.log("solution found");
             return nb_board;
         }
-        for(let coor of nb_board.clickable_nonisland_coors){
+        for(let coor of nb_board.clickable_coors){
             stack.push(nb_board.get_new_board_from_excavated_coor(coor));
         }
         current_searches++;
@@ -343,8 +439,8 @@ function get_traced_boards(child_board){
     return boards;
 }
 
-function solve_board(starting_board,percent_goal,max_searches=5000){
-    let solved_board = get_solved_board(starting_board,percent_goal,max_searches);
+function solve_board(starting_board,score_goal,max_searches=5000){
+    let solved_board = get_solved_board(starting_board,score_goal,max_searches);
     let boards = get_traced_boards(solved_board);
     return boards;
 }

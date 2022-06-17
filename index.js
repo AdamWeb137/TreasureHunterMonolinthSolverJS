@@ -1,4 +1,6 @@
 Board.set_dimensions(22,11);
+// Board.set_dimensions(5,5);
+
 
 const color_translation = {
     0:"var(--bc)",
@@ -6,6 +8,12 @@ const color_translation = {
     2:"var(--blue)",//blue
     3:"var(--grey)",//grey
     4:"var(--pink)"//pink
+};
+
+const prize_translation = {
+	0:"Nothing",
+	1:"Fish Fossil",
+	2:"Monocub"
 };
 
 let solution_board_list = null;
@@ -33,15 +41,9 @@ function set_solution_display(board_list, i){
     current_solution_i = i;
 
     let lb = board_list[board_list.length-1];
-    document.querySelector("#clear_info").innerHTML = `${(lb.cleared_area/Board.area*100).toFixed(2)}% Clear`;
+    document.querySelector("#clear_info").innerHTML = `${(lb.cleared_area/Board.area*100).toFixed(2)}% clear`;
     document.querySelector("#step_info").innerHTML = `${lb.depth} steps`;
-
-    // document.addEventListener("keydown",e=>{
-    //     if(!input_hidden)return;
-    //     if(e.key == "0" || e.key == "Enter") set_solution_display(board_list,0);
-    //     if(e.key == "ArrowLeft") set_solution_display(board_list, Math.max(0,i-1));
-    //     if(e.key == "ArrowRight") set_solution_display(board_list, Math.min(i+1,board_list.length-1));
-    // });
+    document.querySelector("#score_info").innerHTML = `${lb.score} score`;
 
     add_event_listener(document,"keydown",e=>{
         if(!input_hidden)return;
@@ -64,9 +66,11 @@ function set_solution_display(board_list, i){
 
             let add_small_box = true;
 
+            let new_inner = "";
+
             for(let j = 1; j < board_list.length; j++){
                 if(Board.same_coors(board_list[j].excavation_coor,xy)){
-                    box.innerHTML = `<b>${j}</b>`;
+                    new_inner += `<b>${j}</b>`;
                     box.classList.add("hoverbox");
 
                     if(i+1 == j){
@@ -74,9 +78,7 @@ function set_solution_display(board_list, i){
                         box.style.backgroundColor = "red";
                         add_small_box = false;
                     }
-                    // box.addEventListener("mouseup",e=>{
-                    //     set_solution_display(board_list,j);
-                    // });
+
                     add_event_listener(box,"mouseup",e=>{
                         set_solution_display(board_list,j);
                     })
@@ -86,6 +88,11 @@ function set_solution_display(board_list, i){
 
             if(add_small_box)box.classList.add("smallbox");
 
+            let is_typed = type_board[y][x] > 0;
+            if(is_typed && new_inner.length > 0) new_inner += "&nbsp;"
+            if(is_typed) new_inner += prize_translation[type_board[y][x]][0];
+            box.innerHTML = new_inner;
+
             new_row.appendChild(box);
         }
         board_div.appendChild(new_row);
@@ -93,6 +100,7 @@ function set_solution_display(board_list, i){
 }
 
 let input_board = Board.get_empty(0);
+let type_board = Board.get_empty(0);
 let input_hidden = false;
 
 function get_child_num(el){
@@ -110,39 +118,23 @@ function set_input_display(){
     board_div.innerHTML = "";
     let focused = null;
 
-    // document.addEventListener("mouseup",e=>{
-    //     if(input_hidden)return;
-    //     let box = e.target;
-    //     if(box.classList.contains("easy_input_btn") && focused != null){
-    //         let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
-    //         let ci = Number(box.getAttribute("data-c") ?? "0");
-    //         focused.style.backgroundColor = color_translation[ci];
-    //         set_block(input_board,xy,ci);
-    //         set_new_focused(XY(xy.x+1,xy.y),true);
-    //         return;
-    //     }
-    //     for(let b of document.querySelectorAll(".bigbox")){
-    //         b.classList.remove("bigbox");
-    //         b.classList.add("smallbox");
-    //     }
-    //     if(!box.classList.contains("ibox")){
-    //         focused = null;
-    //         return;
-    //     };
-    //     focused = box;
-    //     box.classList.add("bigbox");
-    //     box.classList.remove("smallbox");
-    // });
-
     add_event_listener(document,"mouseup",e=>{
         if(input_hidden)return;
         let box = e.target;
         if(box.classList.contains("easy_input_btn") && focused != null){
-            let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
-            let ci = Number(box.getAttribute("data-c") ?? "0");
-            focused.style.backgroundColor = color_translation[ci];
-            set_block(input_board,xy,ci);
-            set_new_focused(XY(xy.x+1,xy.y),true);
+        	if(box.parentElement.id == "block_row"){
+		        let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
+		        let ci = Number(box.getAttribute("data-c") ?? "0");
+		        focused.style.backgroundColor = color_translation[ci];
+		        set_block(input_board,xy,ci);
+		        set_new_focused(XY(xy.x+1,xy.y),true);
+            }else if(box.parentElement.id == "type_row"){
+            	let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
+		        let pi = Number(box.getAttribute("data-c") ?? "0");
+		        if(pi > 0)focused.innerHTML = prize_translation[pi][0];
+		        if(pi == 0)focused.innerHTML = "";
+		        set_block(type_board,xy,pi);
+            }
             return;
         }
         for(let b of document.querySelectorAll(".bigbox")){
@@ -184,8 +176,8 @@ function set_input_display(){
     };
 
     const handle_auto_move = e=>{
-        let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
         if(focused == null)return;
+        let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
         let possible = "01234";
         if(!possible.includes(e.key))return;
         let val = Number(e.key);
@@ -195,9 +187,20 @@ function set_input_display(){
         set_new_focused(XY(xy.x+1,xy.y),true);
     };
 
-    const handle_manual_move = e=>{
+    const handle_type_selection = e=>{
+        if(focused == null) return;
         let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
+        let possible = "nfm";
+        let ind = possible.indexOf(e.key.toLowerCase());
+        if(ind == -1)return;
+        if(ind > 0)focused.innerHTML = e.key.toUpperCase();
+        if(ind == 0)focused.innerHTML = "";
+        set_block(type_board, xy, ind);
+    };
+
+    const handle_manual_move = e=>{
         if(focused == null)return;
+        let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
         let possible = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
         if(!possible.includes(e.key))return;
         
@@ -225,17 +228,12 @@ function set_input_display(){
 
     };
 
-    // document.addEventListener("keydown",e=>{
-    //     if(input_hidden)return;
-    //     handle_manual_move(e);
-    //     handle_auto_move(e);
-    // });
-
     add_event_listener(document,"keydown",e=>{
         console.log("input keydown");
         if(input_hidden)return;
         handle_manual_move(e);
         handle_auto_move(e);
+        handle_type_selection(e);
     });
 
     for(let y = 0; y < Board.height; y++){
@@ -250,6 +248,7 @@ function set_input_display(){
             box.classList.add("hoverbox");
             let xy = XY(x,y);
             box.style.backgroundColor = color_translation[get_block(input_board,xy)];
+            if(get_block(type_board,xy) > 0) box.innerHTML = prize_translation[get_block(type_board,xy)][0];
             box.setAttribute("data-i",Board.coor_to_index(xy));
             new_row.appendChild(box);
         }
@@ -257,7 +256,8 @@ function set_input_display(){
     }
     let easy_input_row = document.createElement("DIV");
     easy_input_row.classList.add("row");
-    easy_input_row.id = "easy_input_row";
+    easy_input_row.classList.add( "easy_input_row");
+    easy_input_row.id = "block_row";
     for(let color_index in color_translation){
         let color_button = document.createElement("DIV");
         color_button.classList.add("easy_input_btn");
@@ -266,11 +266,24 @@ function set_input_display(){
         easy_input_row.appendChild(color_button);
     }
     board_div.appendChild(easy_input_row);
+    let type_input_row = document.createElement("DIV");
+    type_input_row.classList.add("row");
+    type_input_row.classList.add( "easy_input_row");
+    type_input_row.id = "type_row";
+    for(let prize_index in prize_translation){
+        let prize_button = document.createElement("DIV");
+        prize_button.classList.add("prize_btn");
+        prize_button.classList.add("easy_input_btn");
+        prize_button.innerHTML = prize_translation[prize_index];
+        prize_button.setAttribute("data-c",prize_index);
+        type_input_row.appendChild(prize_button);
+    }
+    board_div.appendChild(type_input_row);
 }
 
-function get_pg(){
-    let pos = Number(document.querySelector("#percent_goal_inp").value);
-    if(isNaN(pos))return 90;
+function get_sg(){
+    let pos = Number(document.querySelector("#score_goal_inp").value);
+    if(isNaN(pos))return 4900;
     return pos;
 }
 
@@ -288,7 +301,8 @@ function solve_mode(){
     document.querySelector("#edit_mode_opts").style.display = "none";
     document.querySelector("#solve_mode_opts").style.display = "flex";
 
-    let input_board_class = new Board(Board.clone_board(input_board), null, 0, null, 0);
+    // let input_board_class = new Board(Board.clone_board(input_board), null, 0, null, 0);
+    let input_board_class = Board.get_board_from_arrays(Board.clone_board(input_board),Board.clone_board(type_board));
 
     const sol_div = document.querySelector("#solution");
     sol_div.innerHTML = "";
@@ -297,8 +311,7 @@ function solve_mode(){
         let i = 0;
     }
     alert("This will take a minute. Please be patient");
-    input_board_class.cleared_area = input_board_class.count_zeros();
-    let board_list = solve_board(input_board_class,get_pg(),get_s());
+    let board_list = solve_board(input_board_class,get_sg(),get_s());
     console.log(board_list);
     set_solution_display(board_list,0);
 }
@@ -317,19 +330,21 @@ function edit_mode(){
 
 function clear(e){
     input_board = Board.get_empty(0);
+    type_board = Board.get_empty(0);
     set_input_display();
 }
 
 function randomize(e){
     input_board = Board.get_empty(1,4);
+    type_board = Board.get_empty(0);
     set_input_display();
 }
 
 window.addEventListener("load",e=>{
-    const pgi = document.querySelector("#percent_goal_inp");
-    pgi.value = "90";
+    const pgi = document.querySelector("#score_goal_inp");
+    pgi.value = "4900";
     pgi.addEventListener("input",e=>{
-        pgi.previousElementSibling.innerHTML = `(${pgi.value}% solved)`;
+        pgi.previousElementSibling.innerHTML = `(${pgi.value} score)`;
     });
     const si = document.querySelector("#searches_inp");
     si.value = "5000";
@@ -352,7 +367,16 @@ window.addEventListener("load",e=>{
 //     [2,3,3,0,0],
 //     [1,2,3,0,2],
 //     [3,2,1,0,2],
-// ],null,0,null,0);
+// ],null,4,null,0, 20,null,[
+//     [1,1,1,0,0],
+//     [0,0,0,0,0],
+//     [0,0,0,2,2],
+//     [0,1,0,2,2],
+//     [0,1,0,2,2],
+// ]);
+// console.log(test_board.prizes);
+// test_board.print_board();
+// console.log(test_board.score);
 // console.log(test_board.get_new_board_from_excavated_coor(XY(0,0)));
 // console.log(test_board.clickable_nonisland_coors);
 // set_solution_display(solve_board(test_board,90),0);

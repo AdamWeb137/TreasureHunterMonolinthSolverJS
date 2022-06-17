@@ -112,7 +112,7 @@ h1{
 }
 
 
-#percentage_goal {
+#score_goal {
     flex-grow: 1;
 }
 
@@ -123,23 +123,23 @@ h1{
     margin:5px;
 }
 
-#percentage_goal > * {
+#score_goal > * {
     margin:0px 3px;
     flex-shrink: 0;
 }
 
-#percentage_goal > input {
+#score_goal > input {
     flex-grow: 1;
     width: auto;
 }
 
-#easy_input_row{
+.easy_input_row{
     width: 100%;
     display: flex;
     flex-wrap: nowrap;
 }
 
-#easy_input_row > * {
+.easy_input_row > * {
     flex-grow: 1;
     width:auto;
 }
@@ -151,4 +151,14 @@ h1{
 }
 .easy_input_btn:hover{
     cursor: pointer;
+}
+
+
+.prize_btn {
+    background-color: var(--grey);
+    text-align: center;
+    height: auto;
+    padding: 10px 0px;
+    font-size: 2rem;
+    user-select: none;
 }
