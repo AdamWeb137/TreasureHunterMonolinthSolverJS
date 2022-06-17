@@ -13,7 +13,7 @@ Go to [https://adamweb137.github.io/TreasureHunterMonolinthSolverJS/](https://ad
 
 You must first duplicate a board from the "Treasure Hunter Monolinth" Minigame in Danganronpa V3. This is what I'll refer to as input mode.
 
-Click on any square to select it. You can then click the corresponding color on the bottom. You can also press 0-4 on your keyboard. The next square will automatically be selected. You can also use the arrow keys to move and select squares.
+Click on any square to select it. You can then click the corresponding color on the bottom. You can also press 0-4 on your keyboard. The next square will automatically be selected. You can also use the arrow keys to move and select squares. You can also click the "Clear chunk" button to clear a chunk from the board, just like in game.
 
 You can also mark a block as being part of a fish fossil or monocub. Click on the correspoding button or press "M" for monocub, "F" for fish, or "N" for nothing.
 

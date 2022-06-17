@@ -356,10 +356,10 @@ class Board {
     	}
     }
 
-    get_new_board_from_excavated_coor(c){
-        let block_type = this.get_block(c);
+    static clear(c,board){
+        let block_type = get_block(board,c);
         let additional_cleared_area = 1;
-        let nb = Board.clone_board(this.board);
+        let nb = Board.clone_board(board);
         let changed_set = new Set();
         set_block(nb,c,-1);
         const search = (coor)=>{
@@ -382,7 +382,15 @@ class Board {
         };
         search(c);
         nb = Board.replace_a_with_b(nb,-1,0);
-        return new Board(nb, this, this.cleared_area+additional_cleared_area, c, this.depth+1, this.score+additional_cleared_area*5, Board.clone_prizes(this.prizes),this.prize_board);
+        return {
+            board:nb,
+            additional_cleared_area:additional_cleared_area
+        }
+    }
+
+    get_new_board_from_excavated_coor(c){
+        let nb = Board.clear(c,this.board);
+        return new Board(nb.board, this, this.cleared_area+nb.additional_cleared_area, c, this.depth+1, this.score+nb.additional_cleared_area*5, Board.clone_prizes(this.prizes),this.prize_board);
     }
 
     count_zeros(){

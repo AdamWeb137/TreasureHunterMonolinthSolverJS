@@ -134,6 +134,10 @@ function set_input_display(){
 		        if(pi > 0)focused.innerHTML = prize_translation[pi][0];
 		        if(pi == 0)focused.innerHTML = "";
 		        set_block(type_board,xy,pi);
+            }else if(box.parentElement.id == "clear_row"){
+            	let xy = Board.index_to_coor(Number(focused.getAttribute("data-i")));
+                input_board = Board.clear(xy,input_board).board;
+                set_input_display();
             }
             return;
         }
@@ -256,7 +260,7 @@ function set_input_display(){
     }
     let easy_input_row = document.createElement("DIV");
     easy_input_row.classList.add("row");
-    easy_input_row.classList.add( "easy_input_row");
+    easy_input_row.classList.add("easy_input_row");
     easy_input_row.id = "block_row";
     for(let color_index in color_translation){
         let color_button = document.createElement("DIV");
@@ -268,7 +272,7 @@ function set_input_display(){
     board_div.appendChild(easy_input_row);
     let type_input_row = document.createElement("DIV");
     type_input_row.classList.add("row");
-    type_input_row.classList.add( "easy_input_row");
+    type_input_row.classList.add("easy_input_row");
     type_input_row.id = "type_row";
     for(let prize_index in prize_translation){
         let prize_button = document.createElement("DIV");
@@ -279,6 +283,17 @@ function set_input_display(){
         type_input_row.appendChild(prize_button);
     }
     board_div.appendChild(type_input_row);
+
+    let clear_row = document.createElement("DIV");
+    clear_row.classList.add("row");
+    clear_row.classList.add("easy_input_row");
+    clear_row.id = "clear_row";
+    let clear_button = document.createElement("DIV");
+    clear_button.classList.add("easy_input_btn");
+    clear_button.classList.add("prize_btn");
+    clear_button.innerHTML = "Clear Chunk";
+    clear_row.appendChild(clear_button);
+    board_div.appendChild(clear_row);
 }
 
 function get_sg(){
